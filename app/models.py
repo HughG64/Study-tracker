@@ -8,3 +8,9 @@ class StudySession(SQLModel, table=True):
     hours: float
     module: str
     topics: str
+
+class UpdateSession(SQLModel):
+    hours: Optional[float] = None
+    module: Optional[str] = None
+    topics: Optional[str] = None
+    date: Optional[date] = None
