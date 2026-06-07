@@ -27,3 +27,19 @@ class UpdateModule(SQLModel):
     name: Optional[str]
     credits: Optional[int]
     is_complete: Optional[bool]
+
+class Assignment(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    assignment_number: int
+    module_id: Optional[int] = Field(default=None, foreign_key="module.id")
+    due_date: date
+    topics: str
+    score: float
+    is_complete: bool
+
+class UpdateAssignment(SQLModel):
+    assignment_number: Optional[int] = None
+    due_date: Optional[date] = None
+    topics: Optional[str] = None
+    score: Optional[float] = None
+    is_complete: Optional[bool] = None

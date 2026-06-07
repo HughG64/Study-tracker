@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from contextlib import asynccontextmanager
 from app.database import create_db_and_tables, get_session
-from app.models import StudySession, UpdateSession, Module, UpdateModule
+from app.models import StudySession, UpdateSession, Module, UpdateModule, Assignment, UpdateAssignment
 from sqlmodel import Session, select
 
 @asynccontextmanager
@@ -97,3 +97,48 @@ def delete_module(id: int, db: Session = Depends(get_session)):
     db.delete(module)
     db.commit()
     return {"message": "Module deleted"}
+
+
+@app.get("/assignments")
+def get_assignment(db: Session = Depends(get_session)):
+    assignment = db.exec(select(Assignment)).all()
+    return assignment
+
+@app.get("/assignments/{id}")
+def get_one_assignment(id: int, db: Session = Depends(get_session)):
+    assignment = db.exec(select(Assignment).where(Assignment.id == id)).first()
+    if assignment is None:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+    return assignment
+
+@app.post("/assignments")
+def create_assignment(assignment_data: Assignment, db: Session = Depends(get_session)):
+    db.add(assignment_data)
+    db.commit()
+    db.refresh(assignment_data)
+    return assignment_data
+
+@app.patch("/assignments/{id}")
+def update_assignment(id: int, updates: UpdateAssignment, db: Session = Depends(get_session)):
+    assignment = db.exec(select(Assignment).where(Assignment.id == id)).first()
+    if assignment is None:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+
+    update_data = updates.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(assignment, key, value)
+
+    db.add(assignment)
+    db.commit()
+    db.refresh(assignment)
+    return assignment
+
+@app.delete("/assignments/{id}")
+def delete_assignment(id: int, db: Session = Depends(get_session)):
+    assignment = db.exec(select(Assignment).where(Assignment.id == id)).first()
+    if assignment is None:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+
+    db.delete(assignment)
+    db.commit()
+    return{"message":"Assignment deleted"}
