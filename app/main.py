@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from contextlib import asynccontextmanager
 from app.database import create_db_and_tables, get_session
 from app.models import StudySession, UpdateSession, Module, UpdateModule, Assignment, UpdateAssignment
+from app.utils import calculate_streak
 from sqlmodel import Session, select
 
 @asynccontextmanager
@@ -142,3 +143,10 @@ def delete_assignment(id: int, db: Session = Depends(get_session)):
     db.delete(assignment)
     db.commit()
     return{"message":"Assignment deleted"}
+
+@app.get("/streak")
+def get_date(db: Session = Depends(get_session)):
+    get_date = db.exec(select(StudySession)).all()
+    dates = [session.date for session in get_date]
+    return calculate_streak(dates)
+
